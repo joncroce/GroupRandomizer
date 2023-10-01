@@ -1,24 +1,25 @@
-﻿namespace GroupRandomizer
+﻿using CommunityToolkit.Mvvm.Messaging;
+using GroupRandomizer.Messages;
+
+namespace GroupRandomizer
 {
     public partial class MainPage : ContentPage
     {
-        int count = 0;
 
         public MainPage()
         {
             InitializeComponent();
-        }
+            BindingContext = new RosterViewModel();
+            
 
-        private void OnCounterClicked(object sender, EventArgs e)
-        {
-            count++;
-
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
+            WeakReferenceMessenger.Default.Register<ShowAddRosterPromptMessage>(this, async (sender, args) => 
+            {
+                var result = await DisplayPromptAsync("Add New Roster", "Please enter a name for your new roster.");
+                if (result != null)
+                {
+                    WeakReferenceMessenger.Default.Send(new AddRosterPromptResultMessage(result));
+                }
+            });
         }
     }
 }

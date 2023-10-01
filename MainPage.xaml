@@ -1,41 +1,54 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:GroupRandomizer"
              x:Class="GroupRandomizer.MainPage">
 
+    <ContentPage.BindingContext>
+        <local:RosterViewModel />
+    </ContentPage.BindingContext>
+
     <ScrollView>
-        <VerticalStackLayout
-            Spacing="25"
-            Padding="30,0"
-            VerticalOptions="Center">
-
-            <Image
-                Source="dotnet_bot.png"
-                SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                HeightRequest="200"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Hello, World!"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Welcome to .NET Multi-platform App UI"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
-                FontSize="18"
-                HorizontalOptions="Center" />
-
-            <Button
-                x:Name="CounterBtn"
-                Text="Click me"
-                SemanticProperties.Hint="Counts the number of times you click"
-                Clicked="OnCounterClicked"
-                HorizontalOptions="Center" />
-
-        </VerticalStackLayout>
+        <Grid 
+            Margin="12" 
+            RowSpacing="6"
+            ColumnSpacing="6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <HorizontalStackLayout
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                >
+            <Label 
+                FontSize="Medium"
+                FontAttributes="Bold"
+                VerticalOptions="Center"
+                Margin="4,0"
+                Text="Roster" />
+            <Picker 
+                x:Name="picker"
+                VerticalOptions="Center"
+                ItemsSource="{Binding Rosters}"
+                SelectedItem="{Binding SelectedRoster}"
+                ItemDisplayBinding="{Binding Name}" />
+            </HorizontalStackLayout>
+            <Button 
+                Grid.Column="8"
+                Text="Add Roster"
+                Command="{Binding ShowNewRosterPromptCommand}" />
+        </Grid>
     </ScrollView>
 
 </ContentPage>

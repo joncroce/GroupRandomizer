@@ -15,8 +15,11 @@ namespace GroupRandomizer
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
+            string dbPath = Config.Constants.DatabasePath;
+            builder.Services.AddSingleton<RosterRepository>(s => ActivatorUtilities.CreateInstance<RosterRepository>(s, dbPath));
+
 #if DEBUG
-		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();
