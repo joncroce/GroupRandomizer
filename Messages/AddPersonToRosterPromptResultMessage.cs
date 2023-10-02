@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace GroupRandomizer.Messages
 {
-    public class AddRosterPromptResultMessage : MessageBase
+    public class AddPersonToRosterPromptResultMessage : MessageBase
     {
         public string Result { get; private set; }
-        public AddRosterPromptResultMessage(string result)
+        public AddPersonToRosterPromptResultMessage(string result)
         {
             Result = result;
         }
-
     }
 }

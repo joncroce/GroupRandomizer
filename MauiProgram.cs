@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CommunityToolkit.Maui;
+using Microsoft.Extensions.Logging;
 
 namespace GroupRandomizer
 {
@@ -6,18 +7,14 @@ namespace GroupRandomizer
     {
         public static MauiApp CreateMauiApp()
         {
-            var builder = MauiApp.CreateBuilder();
-            builder
+            var builder = MauiApp.CreateBuilder()
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
-
-            string dbPath = Config.Constants.DatabasePath;
-            builder.Services.AddSingleton<RosterRepository>(s => ActivatorUtilities.CreateInstance<RosterRepository>(s, dbPath));
-
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

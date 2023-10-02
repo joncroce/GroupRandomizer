@@ -1,54 +1,63 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:GroupRandomizer"
-             x:Class="GroupRandomizer.MainPage">
-
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:local="clr-namespace:GroupRandomizer.ViewModels"
+             x:Class="GroupRandomizer.MainPage"
+             x:Name="ContentPage">
     <ContentPage.BindingContext>
         <local:RosterViewModel />
     </ContentPage.BindingContext>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <toolkit:IsNullConverter x:Key="IsNullConverter" />
+            <toolkit:IsNotNullConverter x:Key="IsNotNullConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <ScrollView>
-        <Grid 
-            Margin="12" 
-            RowSpacing="6"
-            ColumnSpacing="6">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <HorizontalStackLayout
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
-                >
-            <Label 
-                FontSize="Medium"
-                FontAttributes="Bold"
-                VerticalOptions="Center"
-                Margin="4,0"
-                Text="Roster" />
-            <Picker 
-                x:Name="picker"
-                VerticalOptions="Center"
-                ItemsSource="{Binding Rosters}"
-                SelectedItem="{Binding SelectedRoster}"
-                ItemDisplayBinding="{Binding Name}" />
-            </HorizontalStackLayout>
-            <Button 
-                Grid.Column="8"
-                Text="Add Roster"
-                Command="{Binding ShowNewRosterPromptCommand}" />
-        </Grid>
+        <StackLayout>
+            
+            <VerticalStackLayout 
+                IsVisible="{Binding SelectedRoster, Converter={StaticResource IsNullConverter}}">
+                <Button 
+                    HorizontalOptions="Center"
+                    Text="Add Roster"
+                    Command="{Binding ShowNewRosterPromptCommand}" />
+            <FlexLayout
+                BindableLayout.ItemsSource="{Binding Rosters}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <Button 
+                            Text="{Binding .}"
+                            Command="{Binding Source={x:Reference ContentPage}, Path=BindingContext.SelectRosterCommand}"
+                            CommandParameter="{Binding .}" />
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout
+                IsVisible="{Binding SelectedRoster, Converter={StaticResource IsNotNullConverter}}">
+                <Button
+                Text="Back"
+                Command="{Binding SelectRosterCommand}" />
+                <Button
+                HorizontalOptions="Center"
+                Text="Add Person to Roster"
+                Command="{Binding ShowAddPersonToRosterPromptCommand}" />
+                <Label Text="{Binding SelectedRosterName}" />
+                <CollectionView
+                ItemsSource="{Binding SelectedRoster}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Label Text="{Binding .}" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            </VerticalStackLayout>
+            
+        </StackLayout>
     </ScrollView>
 
 </ContentPage>

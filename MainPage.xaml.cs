@@ -8,9 +8,7 @@ namespace GroupRandomizer
 
         public MainPage()
         {
-            InitializeComponent();
-            BindingContext = new RosterViewModel();
-            
+            InitializeComponent();            
 
             WeakReferenceMessenger.Default.Register<ShowAddRosterPromptMessage>(this, async (sender, args) => 
             {
@@ -18,6 +16,15 @@ namespace GroupRandomizer
                 if (result != null)
                 {
                     WeakReferenceMessenger.Default.Send(new AddRosterPromptResultMessage(result));
+                }
+            });
+
+            WeakReferenceMessenger.Default.Register<ShowAddPersonToRosterPromptMessage>(this, async (sender, args) =>
+            {
+                var result = await DisplayPromptAsync("Add Person to Roster", "Please enter a name for the person to add to the roster.");
+                if (result != null)
+                {
+                    WeakReferenceMessenger.Default.Send(new AddPersonToRosterPromptResultMessage(result));
                 }
             });
         }
