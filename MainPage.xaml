@@ -24,39 +24,149 @@
                     HorizontalOptions="Center"
                     Text="Add Roster"
                     Command="{Binding ShowNewRosterPromptCommand}" />
-            <FlexLayout
-                BindableLayout.ItemsSource="{Binding Rosters}">
+                <FlexLayout BindableLayout.ItemsSource="{Binding Rosters}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate>
                             <Button 
-                            Text="{Binding .}"
-                            Command="{Binding Source={x:Reference ContentPage}, Path=BindingContext.SelectRosterCommand}"
-                            CommandParameter="{Binding .}" />
+                                Text="{Binding .}"
+                                Command="{Binding Source={x:Reference ContentPage}, Path=BindingContext.SelectRosterCommand}"
+                                CommandParameter="{Binding .}" />
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
                 </FlexLayout>
             </VerticalStackLayout>
 
-            <VerticalStackLayout
-                IsVisible="{Binding SelectedRoster, Converter={StaticResource IsNotNullConverter}}">
-                <Button
-                Text="Back"
-                Command="{Binding SelectRosterCommand}" />
-                <Button
-                HorizontalOptions="Center"
-                Text="Add Person to Roster"
-                Command="{Binding ShowAddPersonToRosterPromptCommand}" />
-                <Label Text="{Binding SelectedRosterName}" />
-                <CollectionView
-                ItemsSource="{Binding SelectedRoster}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Label Text="{Binding .}" />
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+            <VerticalStackLayout IsVisible="{Binding SelectedRoster, Converter={StaticResource IsNotNullConverter}}">
+                <FlexLayout>
+                    <Grid 
+                        x:Name="BackButton"
+                        Padding="8"
+                        ColumnSpacing="4">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectRosterCommand}" />
+                        </Grid.GestureRecognizers>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <BoxView Grid.Column="0"
+                                 Grid.ColumnSpan="2"
+                                 Color="Bisque"
+                                 CornerRadius="5" />
+                        <Image Grid.Column="0"
+                           Source="mingcute_arrow_left_fill.png"
+                           WidthRequest="30"
+                           HeightRequest="30"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"
+                           Margin="4,0,0,0" />
+                        <Label Grid.Column="1"
+                           Text="Back to Rosters"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Start"
+                           TextColor="{x:DynamicResource Gray600}"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           Margin="0,0,8,0"/>
+                    </Grid>
+                </FlexLayout>
+
+                <Label 
+                    Text="{Binding SelectedRosterName}" 
+                    FontSize="40"
+                    FontAttributes="Bold"
+                    HorizontalTextAlignment="Center"
+                    Margin="20"
+                />
+
+                <Button Command="{Binding ShowAddPersonToRosterPromptCommand}"
+                        Text="Add Person"
+                        HorizontalOptions="Center" />
+
+                <Grid ColumnSpacing="0"
+                      RowSpacing="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <VerticalStackLayout Grid.Column="0"
+                                         Grid.Row="0"
+                                         Grid.ColumnSpan="1">
+                        <Label Text="People"
+                               TextDecorations="Underline"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               Margin="10" />
+
+                        <FlexLayout BindableLayout.ItemsSource="{Binding SelectedRoster}"
+                                    Wrap="Wrap">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate>
+                                    <Label Text="{Binding .}"
+                                        Margin="4"
+                                        Padding="6,4"
+                                        BackgroundColor="BlanchedAlmond"
+                                        VerticalOptions="Center"/>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="1"
+                                         Grid.Row="0"
+                                         Grid.ColumnSpan="1">
+                        <HorizontalStackLayout Margin="0,12"
+                                               HorizontalOptions="Center">
+                            <VerticalStackLayout HorizontalOptions="Center"
+                                                 Margin="8,0">
+                                <Label Text="Ideal Group Size"
+                                       FontSize="20"
+                                       FontAttributes="Bold"
+                                       Padding="0,0,0,4"
+                                       VerticalOptions="Center"/>
+                                <FlexLayout JustifyContent="Center">
+                                    <Entry Text="{Binding GroupSize}" 
+                                            Keyboard="Numeric"
+                                            FontSize="12"
+                                           FontAttributes="Bold"
+                                            Margin="2,0"
+                                            HeightRequest="32"
+                                           MinimumHeightRequest="32"
+                                            VerticalTextAlignment="Center" />
+                                    <Stepper VerticalOptions="Center"
+                                                Minimum="2"
+                                                Increment="1"
+                                                Value="{Binding GroupSize}" 
+                                             Margin="0,-2" />
+                                </FlexLayout>
+                            </VerticalStackLayout>
+                            <Button Text="Group People"
+                                    Command="{Binding GroupPeopleCommand}"
+                                    IsEnabled="{Binding GroupButtonIsEnabled}"
+                                    Margin="8,0" />
+                        </HorizontalStackLayout>
+                        
+                        <CollectionView ItemsSource="{Binding PeopleGroups}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <FlexLayout BindableLayout.ItemsSource="{Binding .}"
+                                Direction="Column" Margin="20">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate>
+                                                <Label Text="{Binding .}" />
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Grid>
             </VerticalStackLayout>
-            
         </StackLayout>
     </ScrollView>
 
