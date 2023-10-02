@@ -100,11 +100,33 @@
                                     Wrap="Wrap">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate>
-                                    <Label Text="{Binding .}"
+                                    <Label Text="{Binding Name}"
+                                           LineBreakMode="NoWrap"
                                             Margin="4"
                                             Padding="6,4"
-                                            BackgroundColor="BlanchedAlmond"
-                                            VerticalOptions="Center" />
+                                            VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding IsPresent}"
+                                                         Value="True">
+                                                <Setter Property="BackgroundColor"
+                                                        Value="BlanchedAlmond" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding IsPresent}"
+                                                         Value="False">
+                                                <Setter Property="BackgroundColor"
+                                                        Value="PaleVioletRed" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                        <FlyoutBase.ContextFlyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="Toggle Presence" 
+                                                                Command="{Binding Source={x:Reference ContentPage}, Path=BindingContext.TogglePersonPresentCommand}"
+                                                                CommandParameter="{Binding Name}" />
+                                            </MenuFlyout>
+                                        </FlyoutBase.ContextFlyout>
+                                    </Label>
                                 </DataTemplate>
                             </BindableLayout.ItemTemplate>
                         </FlexLayout>
@@ -143,22 +165,33 @@
                                     IsEnabled="{Binding GroupButtonIsEnabled}"
                                     Margin="8,0" />
                         </HorizontalStackLayout>
-                        
-                        <CollectionView ItemsSource="{Binding PeopleGroups}">
-                            <CollectionView.ItemTemplate>
+
+                        <FlexLayout BindableLayout.ItemsSource="{Binding PeopleGroups}"
+                                    Direction="Row"
+                                    Wrap="Wrap">
+                            <BindableLayout.ItemTemplate>
                                 <DataTemplate>
-                                    <FlexLayout BindableLayout.ItemsSource="{Binding .}"
-                                                Direction="Column" 
-                                                Margin="20">
-                                        <BindableLayout.ItemTemplate>
-                                            <DataTemplate>
-                                                <Label Text="{Binding .}" />
-                                            </DataTemplate>
-                                        </BindableLayout.ItemTemplate>
-                                    </FlexLayout>
+                                    <Frame Padding="10" 
+                                           Margin="10,20" 
+                                           CornerRadius="10"
+                                           WidthRequest="180">
+                                        <StackLayout>
+                                            <Label Text="{Binding HeaderText}" 
+                                                   FontAttributes="Bold"
+                                                   TextDecorations="Underline" />
+                                            <CollectionView ItemsSource="{Binding Data}">
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Label Text="{Binding .}"
+                                                               Margin="0"/>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
+                                        </StackLayout>
+                                    </Frame>
                                 </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
                     </VerticalStackLayout>
                 </Grid>
             </VerticalStackLayout>

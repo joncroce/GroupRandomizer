@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using GroupRandomizer.Messages;
@@ -15,8 +16,8 @@ namespace GroupRandomizer.ViewModels
         private readonly RosterService _rosterService;
         private ObservableCollection<string> _rosters;
         private string _selectedRosterName;
-        private ObservableCollection<string> _selectedRoster;
-        private ObservableCollection<List<string>> _peopleGroups;
+        private ObservableCollection<Person> _selectedRoster;
+        private ObservableCollection<Group> _peopleGroups;
         private int _groupSize;
         public ObservableCollection<string> Rosters 
         {
@@ -36,7 +37,7 @@ namespace GroupRandomizer.ViewModels
                 OnPropertyChanged(nameof(SelectedRosterName));
             }
         }
-        public ObservableCollection<string> SelectedRoster
+        public ObservableCollection<Person> SelectedRoster
         {
             get { return _selectedRoster; }
             set
@@ -46,7 +47,7 @@ namespace GroupRandomizer.ViewModels
                 OnPropertyChanged(nameof(GroupButtonIsEnabled));
             }
         }
-        public ObservableCollection<List<string>> PeopleGroups
+        public ObservableCollection<Group> PeopleGroups
         {
             get { return _peopleGroups; }
             set
@@ -72,6 +73,7 @@ namespace GroupRandomizer.ViewModels
         public ICommand ShowNewRosterPromptCommand { get; private set; }
         public ICommand ShowAddPersonToRosterPromptCommand { get; private set; }
         public ICommand GroupPeopleCommand { get; private set; }
+        public ICommand TogglePersonPresentCommand { get; private set; }
 
         public bool GroupButtonIsEnabled => IsValidTargetGroupSize();
 
@@ -79,6 +81,45 @@ namespace GroupRandomizer.ViewModels
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public class Person : INotifyPropertyChanged
+        {
+            private string _name;
+            private bool _isPresent;
+
+            public string Name { 
+                get { return _name; } 
+                set { 
+                    _name = value;
+                    OnPropertyChanged();
+                } 
+            }
+            public bool IsPresent { 
+                get { return _isPresent; } 
+                set { 
+                    _isPresent = value;
+                    OnPropertyChanged();
+                } 
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+
+            public Person(string name)
+            {
+                Name = name;
+                IsPresent = true;
+            }
+
+            public void ToggleIsPresent()
+            {
+                IsPresent = !IsPresent;
+            }
         }
 
         public RosterViewModel()
@@ -96,7 +137,15 @@ namespace GroupRandomizer.ViewModels
                     }
                     else
                     {
-                        SelectedRoster = new ObservableCollection<string>(await _rosterService.GetRosterAsync(arg));
+                        List<string> names = await _rosterService.GetRosterAsync(arg);
+                        List<Person> people = new List<Person>();
+
+                        foreach (var name in names)
+                        {
+                            people.Add(new Person(name));
+                        }
+                        
+                        SelectedRoster = new ObservableCollection<Person>(people);
                     }
 
                     SelectedRosterName = arg;
@@ -120,6 +169,15 @@ namespace GroupRandomizer.ViewModels
                 }
             });
 
+            TogglePersonPresentCommand = new Command<string>(
+                execute: (arg) =>
+                {
+                    Person person = SelectedRoster.FirstOrDefault((person) => person.Name == arg);
+
+                    person?.ToggleIsPresent();
+                }
+            );
+
             GroupPeopleCommand = new Command(GroupPeople);
             GroupSize = 4;
         }
@@ -133,7 +191,7 @@ namespace GroupRandomizer.ViewModels
         private void AddRoster(string name)
         {
             SelectedRosterName = name;
-            SelectedRoster = new ObservableCollection<string>();
+            SelectedRoster = new ObservableCollection<Person>();
             Rosters.Add(name);
             Save();
         }
@@ -142,7 +200,7 @@ namespace GroupRandomizer.ViewModels
         {
             if (name.Length > 0 && SelectedRosterName != null && SelectedRoster != null)
             {
-                SelectedRoster.Add(name);
+                SelectedRoster.Add(new Person(name));
                 Save();
             }
         }
@@ -161,32 +219,58 @@ namespace GroupRandomizer.ViewModels
 
             return true;
         }
+        public class Group
+        {
+            private string _headerText;
+            private List<string> _data;
+
+            public string HeaderText { 
+                get { return _headerText; }
+                set { _headerText = value; }
+            }
+            public List<string> Data
+            {
+                get { return _data; }
+                set { _data = value; }
+            }
+
+            public Group(int number, List<string> data)
+            {
+                HeaderText = String.Format("Group # {0}", number);
+                Data = data;
+            }
+
+            public void AddPerson(string person)
+            {
+                Data.Add(person);
+            }
+        }
         private void GroupPeople()
         {
             if (SelectedRoster is not null)
             {
-                var people = SelectedRoster.ToList();
-                Shuffle(people);
+                var presentPeople = SelectedRoster.Where(p => p.IsPresent).ToList();
+                Shuffle(presentPeople);
 
-                int remainder = SelectedRoster.Count % GroupSize;
+                int remainder = presentPeople.Count % GroupSize;
                 int minGroupsCount = remainder == 0 
                     ? 0 
                     : GroupSize - remainder;
                 int maxGroupsCount = remainder == 0 
-                    ? SelectedRoster.Count / GroupSize 
-                    : (SelectedRoster.Count - (minGroupsCount * (GroupSize - 1))) / GroupSize;
+                    ? presentPeople.Count / GroupSize 
+                    : (presentPeople.Count - (minGroupsCount * (GroupSize - 1))) / GroupSize;
                 int groupsCount = minGroupsCount + maxGroupsCount;
 
-                ObservableCollection<List<string>> groups = new();
+                ObservableCollection<Group> groups = new();
                 int index = 0;
                 for (int i = 0; i < groupsCount; i++)
                 {
                     int n = i < maxGroupsCount ? GroupSize : GroupSize - 1;
-                    List<string> group = new();
+                    Group group = new(i + 1, new List<string>());
 
                     for (int j = 0; j < n; j++)
                     {
-                        group.Add(people[index]);
+                        group.AddPerson(presentPeople[index].Name);
                         index++;
                     }
 
@@ -211,7 +295,7 @@ namespace GroupRandomizer.ViewModels
         }
         private async void Save()
         {
-            await _rosterService.SaveRosterAsync(SelectedRosterName, SelectedRoster.ToList());
+            await _rosterService.SaveRosterAsync(SelectedRosterName, SelectedRoster.Select(p => p.Name).ToList());
         }
 
         public static void ShowNewRosterPrompt()
