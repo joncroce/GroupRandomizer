@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Maui.Graphics;
 using GroupRandomizer.Messages;
 using GroupRandomizer.Services;
 
@@ -70,10 +71,12 @@ namespace GroupRandomizer.ViewModels
             }
         }
         public ICommand SelectRosterCommand { get; private set; }
+        public ICommand DeleteSelectedRosterCommand { get; private set; }
         public ICommand ShowNewRosterPromptCommand { get; private set; }
         public ICommand ShowAddPersonToRosterPromptCommand { get; private set; }
         public ICommand GroupPeopleCommand { get; private set; }
         public ICommand TogglePersonPresentCommand { get; private set; }
+        public ICommand RemovePersonFromRosterCommand { get; private set; }
 
         public bool GroupButtonIsEnabled => IsValidTargetGroupSize();
 
@@ -82,7 +85,6 @@ namespace GroupRandomizer.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
         public class Person : INotifyPropertyChanged
         {
             private string _name;
@@ -126,7 +128,7 @@ namespace GroupRandomizer.ViewModels
         {
             _rosterService = new RosterService();
 
-            LoadRostersAsync();
+            _ = LoadRostersAsync();
 
             SelectRosterCommand = new Command<string>(
                 execute: async (arg) =>
@@ -138,7 +140,7 @@ namespace GroupRandomizer.ViewModels
                     else
                     {
                         List<string> names = await _rosterService.GetRosterAsync(arg);
-                        List<Person> people = new List<Person>();
+                        List<Person> people = new();
 
                         foreach (var name in names)
                         {
@@ -150,7 +152,9 @@ namespace GroupRandomizer.ViewModels
 
                     SelectedRosterName = arg;
                 }
-                );
+            );
+
+            DeleteSelectedRosterCommand = new Command(ShowDeleteSelectedRosterAlert);
 
             ShowNewRosterPromptCommand = new Command(ShowNewRosterPrompt);
 
@@ -169,12 +173,26 @@ namespace GroupRandomizer.ViewModels
                 }
             });
 
+            WeakReferenceMessenger.Default.Register<DeleteSelectedRosterAlertResultMessage>(this, (sender, args) =>
+            {
+                if (args.Answer)
+                {
+                    DeleteSelectedRoster();
+                }
+            });
+
             TogglePersonPresentCommand = new Command<string>(
                 execute: (arg) =>
                 {
                     Person person = SelectedRoster.FirstOrDefault((person) => person.Name == arg);
 
                     person?.ToggleIsPresent();
+                }
+            );
+
+            RemovePersonFromRosterCommand = new Command<string>(
+                execute: (arg) => {
+                    RemovePersonFromSelectedRoster(arg);
                 }
             );
 
@@ -186,6 +204,18 @@ namespace GroupRandomizer.ViewModels
         {
             List<string> fileNames = await _rosterService.GetRosterFilesAsync();
             Rosters = new ObservableCollection<string>(fileNames);
+        }
+
+        public async void DeleteSelectedRoster()
+        {
+            if (SelectedRosterName != null)
+            {
+                await _rosterService.DeleteRosterFileAsync(SelectedRosterName);
+                await LoadRostersAsync();
+                SelectedRosterName = null;
+                SelectedRoster = null;
+                PeopleGroups = null;
+            }
         }
 
         private void AddRoster(string name)
@@ -201,6 +231,16 @@ namespace GroupRandomizer.ViewModels
             if (name.Length > 0 && SelectedRosterName != null && SelectedRoster != null)
             {
                 SelectedRoster.Add(new Person(name));
+                Save();
+            }
+        }
+
+        private void RemovePersonFromSelectedRoster(string name)
+        {
+            if (name.Length > 0 && SelectedRosterName != null && SelectedRoster != null)
+            {
+                Person person = SelectedRoster.FirstOrDefault(p => p.Name == name);
+                SelectedRoster.Remove(person);
                 Save();
             }
         }
@@ -288,9 +328,7 @@ namespace GroupRandomizer.ViewModels
             {
                 n--;
                 int k = rng.Next(n + 1);
-                T value = list[k];
-                list[k] = list[n];
-                list[n] = value;
+                (list[n], list[k]) = (list[k], list[n]);
             }
         }
         private async void Save()
@@ -306,6 +344,11 @@ namespace GroupRandomizer.ViewModels
         public static void ShowAddPersonToRosterPrompt()
         {
             WeakReferenceMessenger.Default.Send(new ShowAddPersonToRosterPromptMessage());
+        }
+
+        public static void ShowDeleteSelectedRosterAlert()
+        {
+            WeakReferenceMessenger.Default.Send(new ShowDeleteSelectedRosterAlertMessage());
         }
     }
 }

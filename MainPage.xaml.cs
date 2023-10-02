@@ -27,6 +27,15 @@ namespace GroupRandomizer
                     WeakReferenceMessenger.Default.Send(new AddPersonToRosterPromptResultMessage(result));
                 }
             });
+
+            WeakReferenceMessenger.Default.Register<ShowDeleteSelectedRosterAlertMessage>(this, async (sender, args) =>
+            {
+                bool answer = await DisplayAlert("Confirm Roster Deletion", "Are you sure you want to delete this roster?", "Yes", "No");
+                if (answer)
+                {
+                    WeakReferenceMessenger.Default.Send(new DeleteSelectedRosterAlertResultMessage(answer));
+                }
+            });
         }
     }
 }

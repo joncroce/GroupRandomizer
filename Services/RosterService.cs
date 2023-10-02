@@ -40,6 +40,11 @@ namespace GroupRandomizer.Services
             string jsonText = JsonConvert.SerializeObject(value);
             await Task.Run(() => File.WriteAllText(Path.Combine(_rosterDir, name), jsonText));
         }
+
+        public async Task DeleteRosterFileAsync(string name)
+        {
+            await Task.Run(() => File.Delete(Path.Combine(_rosterDir, name)));
+        }
     }
 
 }

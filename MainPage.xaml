@@ -34,7 +34,7 @@
             </VerticalStackLayout>
 
             <VerticalStackLayout IsVisible="{Binding SelectedRoster, Converter={StaticResource IsNotNullConverter}}">
-                <FlexLayout>
+                <FlexLayout JustifyContent="SpaceBetween">
                     <Grid x:Name="BackButton"
                           Padding="8"
                           ColumnSpacing="4">
@@ -65,6 +65,10 @@
                                FontAttributes="Bold"
                                Margin="0,0,8,0" />
                     </Grid>
+                    <Button Text="Delete Roster"
+                            TextColor="WhiteSmoke"
+                            BackgroundColor="DarkRed"
+                            Command="{Binding DeleteSelectedRosterCommand}" />
                 </FlexLayout>
 
                 <Label Text="{Binding SelectedRosterName}" 
@@ -121,8 +125,12 @@
                                         </Label.Triggers>
                                         <FlyoutBase.ContextFlyout>
                                             <MenuFlyout>
-                                                <MenuFlyoutItem Text="Toggle Presence" 
+                                                <MenuFlyoutItem Text="Toggle Presence"
                                                                 Command="{Binding Source={x:Reference ContentPage}, Path=BindingContext.TogglePersonPresentCommand}"
+                                                                CommandParameter="{Binding Name}" />
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="Delete"
+                                                                Command="{Binding Source={x:Reference ContentPage}, Path=BindingContext.RemovePersonFromRosterCommand}"
                                                                 CommandParameter="{Binding Name}" />
                                             </MenuFlyout>
                                         </FlyoutBase.ContextFlyout>
